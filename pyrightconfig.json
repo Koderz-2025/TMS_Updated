@@ -1,0 +1,18 @@
+{
+  "venvPath": "Transport_management/backend",
+  "venv": "env",
+  "extraPaths": [
+    "Transport_management/backend/TMS_project"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "Transport_management/backend/TMS_project",
+      "extraPaths": [
+        "Transport_management/backend/TMS_project"
+      ]
+    }
+  ],
+  "include": [
+    "Transport_management/backend/TMS_project"
+  ]
+}

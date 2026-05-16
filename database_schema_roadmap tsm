@@ -1,0 +1,167 @@
+# Transport Management Database Roadmap
+
+This document outlines the entire structure of the MySQL database used in the system, detailing the Entity Relationship (ER) routing, precise table columns, datatypes, and constraints (Nullable vs. Required fields).
+
+## 1. Entity Relationship (ER) Diagram
+*(The following diagram shows the logical relationships. Note: In this project's architecture, relations are currently defined using string-based implicit linking such as `vehicle_number` or `driver_name` instead of strict SQL Foreign Keys).*
+
+```mermaid
+erDiagram
+    DRIVER ||--o{ VEHICLE : "assigned to"
+    VEHICLE ||--o{ TRIP : "performs"
+    DRIVER ||--o{ TRIP : "drives"
+    VEHICLE ||--o{ FUEL : "consumes"
+    VEHICLE ||--o{ TOLL : "pays"
+    VEHICLE ||--o{ LRBILTY : "carries"
+    DRIVER ||--o{ LRBILTY : "drives for"
+    VEHICLE ||--o{ TRACKING : "monitored by"
+    VENDOR ||--o{ INVENTORY : "supplies"
+
+    VEHICLE {
+        int vehicle_id PK
+        string vehicle_number
+        string driver_name FK "Implicit"
+    }
+    DRIVER {
+        int driver_id PK
+        string name
+    }
+    TRIP {
+        int trip_id PK
+        string vehicle_id FK
+        string driver_name FK
+    }
+    FUEL {
+        int fuel_id PK
+        string vehicle FK
+    }
+    TOLL {
+        int toll_id PK
+        string vehicle FK
+    }
+    LRBILTY {
+        int lr_id PK
+        string eway FK
+    }
+    VENDOR {
+        int vendor_id PK
+        string name
+    }
+    INVENTORY {
+        int item_id PK
+        string vendor FK
+    }
+```
+
+---
+
+## 2. Comprehensive Table Structures
+
+### 2.1 Vehicle
+**Connected to:** [Trip](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#102-119), [Fuel](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#60-72), [Toll](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#74-86), [Tracking](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#220-234), [Driver](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#4-50) (via driver_name).
+| Column Name | Data Type | Constraint | Comments |
+| :--- | :--- | :--- | :--- |
+| `vehicle_id` | AutoField (Int) | **NOT NULL** (PK) | Unique Auto-increment |
+| `vehicle_number` | CharField(50) | NULL / BLANK | |
+| `make` | CharField(50) | NULL / BLANK | |
+| `model` | CharField(50) | NULL / BLANK | |
+| `capacity` | CharField(50) | NULL / BLANK | |
+| `driver_name` | CharField(100) | NULL / BLANK | Implicit FK to Driver |
+| `status` | CharField(30) | **NOT NULL** | Default: 'Available' |
+| `added_date` | DateTimeField | **NOT NULL** | Auto-generated |
+
+### 2.2 Driver
+**Connected to:** [Vehicle](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#87-101), [Trip](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#102-119), [LRBilty](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#120-140).
+| Column Name | Data Type | Constraint | Comments |
+| :--- | :--- | :--- | :--- |
+| `driver_id` | AutoField (Int) | **NOT NULL** (PK) | Unique Auto-increment |
+| `name` | CharField(100) | NULL / BLANK | |
+| `license` | CharField(50) | NULL / BLANK | |
+| `phone`, `altPhone` | CharField(15) | NULL / BLANK | |
+| `address`, `medical` | TextField | NULL / BLANK | Long text storage |
+| [photo](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#53-55) | ImageField | NULL / BLANK | |
+| `dob` | DateField | NULL / BLANK | |
+| `status` | CharField(10) | **NOT NULL** | Default: 'Active' |
+| *(Additional Info)* | *(Various)* | NULL / BLANK | Age, aadhar, city, state |
+
+### 2.3 Trip
+**Connected to:** [Vehicle](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#87-101) (via vehicle_id), [Driver](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#4-50) (via driver_name).
+| Column Name | Data Type | Constraint | Comments |
+| :--- | :--- | :--- | :--- |
+| `trip_id` | AutoField (Int) | **NOT NULL** (PK) | Unique Auto-increment |
+| `vehicle_id` | CharField(50) | NULL / BLANK | Implicit FK to Vehicle |
+| `driver_name` | CharField(100) | NULL / BLANK | Implicit FK to Driver |
+| `start_location` | CharField(200) | NULL / BLANK | |
+| `end_location` | CharField(200) | NULL / BLANK | |
+| `status` | CharField(30) | **NOT NULL** | Default: 'Scheduled' |
+| `distance` | FloatField | **NOT NULL** | Requires Data (Default 0)|
+| `fuel_consumed` | FloatField | **NOT NULL** | Requires Data (Default 0)|
+
+### 2.4 Fuel & Toll Management
+**Connected to:** [Vehicle](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#87-101) (via vehicle).
+
+**Fuel Table**
+| Column Name | Data Type | Constraint | Comments |
+| :--- | :--- | :--- | :--- |
+| `fuel_id` | AutoField (Int) | **NOT NULL** (PK) | Unique ID |
+| `vehicle` | CharField(50) | **NOT NULL** | Value Required! |
+| `litres` | FloatField | **NOT NULL** | Value Required! |
+| `price_per_litre` | FloatField | **NOT NULL** | Value Required! |
+| `date` | DateField | **NOT NULL** | Value Required! |
+| [photo](file:///d:/Koderz_T/Admin_TSm_all/Transport_management/backend/TMS_project/main_app/models.py#53-55) | ImageField | NULL / BLANK | |
+
+**Toll Table**
+| Column Name | Data Type | Constraint | Comments |
+| :--- | :--- | :--- | :--- |
+| `toll_id` | AutoField (Int) | **NOT NULL** (PK) | Unique ID |
+| `vehicle` | CharField(50) | **NOT NULL** | Value Required! |
+| `toll_name` | CharField(100) | **NOT NULL** | Value Required! |
+| `amount` | FloatField | **NOT NULL** | Value Required! |
+
+### 2.5 Billing (LRBilty & EWayBill)
+**LRBilty Table**
+| Column Name | Data Type | Constraint | Comments |
+| :--- | :--- | :--- | :--- |
+| `lr_id` | AutoField (Int) | **NOT NULL** (PK) | Unique ID |
+| `lr_number`, `route`| CharField | NULL / BLANK | |
+| `consignor`, `consignee`| CharField(200) | NULL / BLANK | |
+| `status` | CharField(30) | **NOT NULL** | Pending/In-Transit |
+| *(Others)* | *(Various)* | NULL / BLANK | driver, vehicle, weight |
+
+**EWayBill Table**
+Contains exactly **17 columns** mapping the E-Way bill standard. `eway_id` and `status` are **NOT NULL**. All other tracking strings (`supplier_gstin`, `invoice_amount`, `buyer_name`) natively accept **NULL / BLANK** values gracefully.
+
+### 2.6 Finance & Settings
+**FinanceTransaction**
+| Column Name | Data Type | Constraint | Comments |
+| :--- | :--- | :--- | :--- |
+| `transaction_id` | AutoField | **NOT NULL** (PK) | Unique ID |
+| `type` | CharField | **NOT NULL** | Income or Expense |
+| `amount` | DecimalField(15,2)| **NOT NULL** | Required Data |
+| `status` | CharField | **NOT NULL** | Completed/Pending |
+| `description` | TextField | NULL / BLANK | |
+
+**SystemSetting**
+| Column Name | Data Type | Constraint | Comments |
+| :--- | :--- | :--- | :--- |
+| `key` | CharField | **NOT NULL** (Unique) | Config name |
+| `value` | TextField | **NOT NULL** | Value Required! |
+
+### 2.7 Vendor & Inventory
+**Connected via:** `Inventory.vendor` mapped to `Vendor.name`.
+
+**Vendor Table**:
+`name` and `status` are **NOT NULL**. Address, emails and phones are **NULL / BLANK**.
+
+**Inventory Table**:
+`name`, `quantity` (Integer) and `unit_price` (Decimal) are **NOT NULL** and strongly demand data. The `category` and `vendor` identifiers accept **NULL / BLANK**.
+
+### 2.8 Tracking
+**Tracking** maps `vehicle_number`.
+Requires `speed` (Float, Default 0.0) and `status` (**NOT NULL**). `latitude` and `longitude` are natively set to **NULL / BLANK** allowed.
+
+---
+
+> [!NOTE]
+> **Summary on Null Types:** 
+> Django models in this project heavily utilize implicit relational mapping (string checks instead of SQL strict foreign keys constraints). Fields marked as **NULL / BLANK** can accept empty forms dynamically on the frontend. Fields marked **NOT NULL** will crash the API if not sent with explicit data.
